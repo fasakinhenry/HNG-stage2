@@ -1,73 +1,98 @@
-# React + TypeScript + Vite
+# Invoice Management App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Stage 2 frontend invoice app built with React, TypeScript, Vite, Tailwind CSS v4, and Context API.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Create, read, update, and delete invoices
+- Save invoices as draft
+- Mark pending invoices as paid
+- Filter invoices by status (draft, pending, paid)
+- Light/dark theme toggle with persistence
+- Responsive sidebar/topbar layout
+- Empty state, pagination, and settings page
+- Form validation for required fields, email format, and item totals
+- Delete confirmation modal with keyboard support
+- Confetti effect when an invoice is marked as paid
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- TypeScript
+- React Router
+- Tailwind CSS v4
+- Context API
+- LocalStorage persistence
+- Bun package manager/runtime
 
-## Expanding the ESLint configuration
+## Setup Instructions
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Install dependencies:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Start development server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun run dev
 ```
+
+3. Build for production:
+
+```bash
+bun run build
+```
+
+4. Preview production build:
+
+```bash
+bun run preview
+```
+
+## Project Structure
+
+```text
+src/
+  components/
+    invoice/
+    ui/
+  context/
+  layout/
+  lib/
+  pages/
+  types/
+```
+
+## Architecture Notes
+
+- `InvoiceContext`: central source for invoice CRUD methods and filter state. It currently uses LocalStorage and seed data, but methods are async and ready to switch to backend HTTP calls.
+- `ThemeContext`: controls global light/dark mode and stores preference in LocalStorage.
+- `PreferencesContext`: stores settings like invoices-per-page used by list pagination.
+- `InvoiceFormDrawer`: shared form component for create and edit flows.
+- `Modal`: reusable accessible modal used for delete confirmation.
+
+## Trade-offs
+
+- LocalStorage is used for speed and demo simplicity; this can be replaced with Node/Express API calls in `InvoiceContext`.
+- The app includes practical validation and accessibility support, while keeping logic simple for beginner readability.
+- Confetti is implemented with CSS animation to avoid extra libraries.
+
+## Accessibility Notes
+
+- Semantic elements used for page and section structure.
+- Form controls are labeled with `label` + `htmlFor`.
+- Interactive actions use real `button` elements.
+- Delete modal supports:
+  - Focus trap
+  - ESC to close
+  - Keyboard navigation with tab cycling
+- Color variables are separated for light and dark themes.
+
+## Improvements You Can Add Next
+
+- Connect `InvoiceContext` methods to real backend endpoints.
+- Add optimistic updates with loading/error toasts.
+- Add unit tests for form validation and context reducers.
+- Add stronger animation polish and route-level loading states.
