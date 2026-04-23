@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "api:dev": "npm --prefix api run dev",
+    "api:start": "npm --prefix api run start",
+    "api:seed": "npm --prefix api run seed"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
