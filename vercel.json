@@ -1,7 +1,0 @@
-{
-  "buildCommand": "vite build",
-  "outputDirectory": "dist",
-  "routes": [
-    { "handle": "filesystem" }
-  ]
-}
