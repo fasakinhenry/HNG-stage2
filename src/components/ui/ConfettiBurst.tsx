@@ -1,32 +1,57 @@
+import { useEffect, useRef } from 'react'
+import ReactCanvasConfetti from 'react-canvas-confetti'
+
 interface ConfettiBurstProps {
   trigger: number
 }
 
+const ConfettiCanvas =
+  (ReactCanvasConfetti as unknown as { default?: typeof ReactCanvasConfetti }).default ?? ReactCanvasConfetti
+
 export function ConfettiBurst({ trigger }: ConfettiBurstProps) {
-  if (trigger === 0) return null
+  const confettiRef = useRef<((options: Record<string, unknown>) => void) | null>(null)
+
+  const makeShot = (particleRatio: number, options: Record<string, unknown>) => {
+    if (!confettiRef.current) return
+
+    confettiRef.current({
+      ...options,
+      origin: { y: 0.62 },
+      particleCount: Math.floor(220 * particleRatio),
+    })
+  }
+
+  useEffect(() => {
+    if (trigger === 0) return
+
+    makeShot(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    })
+    makeShot(0.2, {
+      spread: 60,
+    })
+    makeShot(0.35, {
+      spread: 100,
+      decay: 0.92,
+      scalar: 0.95,
+    })
+    makeShot(0.2, {
+      spread: 120,
+      startVelocity: 24,
+      decay: 0.94,
+      scalar: 1.2,
+    })
+  }, [trigger])
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">
-      {Array.from({ length: 36 }).map((_, index) => {
-        const left = (index % 12) * 8 + Math.random() * 4
-        const delay = (index % 10) * 0.03
-        const duration = 1 + (index % 6) * 0.1
-        const color = ['#7C5DFA', '#33D69F', '#FF8F00', '#EC5757'][index % 4]
-
-        return (
-          <span
-            key={`${trigger}-${index}`}
-            className="absolute top-0 h-2 w-2 animate-[confetti_1.4s_ease-out_forwards] rounded-sm"
-            style={{
-              left: `${left}%`,
-              animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
-              backgroundColor: color,
-              transform: `translateY(-20px) rotate(${Math.random() * 180}deg)`,
-            }}
-          />
-        )
-      })}
+    <div className="pointer-events-none fixed inset-0 z-60" aria-hidden="true">
+      <ConfettiCanvas
+        onInit={({ confetti }) => {
+          confettiRef.current = confetti
+        }}
+        style={{ position: 'fixed', pointerEvents: 'none', width: '100%', height: '100%' }}
+      />
     </div>
   )
 }

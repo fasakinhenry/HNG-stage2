@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import { RequireAuth } from './components/auth/RequireAuth'
 import { AuthProvider } from './context/AuthContext'
 import { InvoiceProvider } from './context/InvoiceContext'
@@ -19,6 +20,19 @@ function App() {
         <PreferencesProvider>
           <InvoiceProvider>
             <BrowserRouter>
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 2800,
+                  style: {
+                    borderRadius: '12px',
+                    border: '1px solid var(--color-border)',
+                    background: 'var(--color-panel)',
+                    color: 'var(--color-text-heading)',
+                    fontWeight: 700,
+                  },
+                }}
+              />
               <Routes>
                 <Route element={<AppLayout />}>
                   <Route path="/" element={<InvoicesPage />} />

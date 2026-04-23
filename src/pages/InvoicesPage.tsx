@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
 import { useInvoices } from '../context/InvoiceContext'
 import { usePreferences } from '../context/PreferencesContext'
 import { InvoiceFormDrawer } from '../components/invoice/InvoiceFormDrawer'
@@ -6,6 +7,7 @@ import { EmptyState } from '../components/invoice/EmptyState'
 import { FilterDropdown } from '../components/invoice/FilterDropdown'
 import { InvoiceCard } from '../components/invoice/InvoiceCard'
 import { Button } from '../components/ui/Button'
+import { ConfettiBurst } from '../components/ui/ConfettiBurst'
 import { Pagination } from '../components/ui/Pagination'
 
 export function InvoicesPage() {
@@ -19,6 +21,7 @@ export function InvoicesPage() {
   const { invoicesPerPage } = usePreferences()
   const [page, setPage] = useState(1)
   const [showForm, setShowForm] = useState(false)
+  const [confettiTick, setConfettiTick] = useState(0)
 
   const filteredInvoices = useMemo(() => {
     if (filterStatuses.length === 0) return invoices
@@ -90,15 +93,30 @@ export function InvoicesPage() {
         mode="create"
         onClose={() => setShowForm(false)}
         onSaveAsDraft={async (payload) => {
-          await createInvoice(payload, true)
+          try {
+            const draft = await createInvoice(payload, true)
+            toast.success(`Draft #${draft.id} saved.`)
+          } catch {
+            toast.error('Could not save draft. Try again.')
+            throw new Error('Draft creation failed')
+          }
         }}
         onSaveAndSend={async (payload) => {
-          await createInvoice(payload, false)
+          try {
+            const created = await createInvoice(payload, false)
+            toast.success(`Invoice #${created.id} created.`)
+            setConfettiTick(Date.now())
+          } catch {
+            toast.error('Could not create invoice. Try again.')
+            throw new Error('Invoice creation failed')
+          }
         }}
         onSaveChanges={async () => {
           // This callback is not used in create mode.
         }}
       />
+
+      <ConfettiBurst trigger={confettiTick} />
     </section>
   )
 }

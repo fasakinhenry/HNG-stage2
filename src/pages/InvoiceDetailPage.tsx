@@ -1,5 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
 import { useInvoices } from '../context/InvoiceContext'
 import { currency, formatDate } from '../lib/helpers'
 import { StatusBadge } from '../components/ui/StatusBadge'
@@ -68,9 +69,17 @@ export function InvoiceDetailPage() {
             variant="primary"
             onClick={async () => {
               if (invoice.status !== 'pending') return
-              const result = await markAsPaid(invoice.id)
-              if (result) {
-                setConfettiTick(Date.now())
+              try {
+                const result = await markAsPaid(invoice.id)
+                if (result) {
+                  toast.success(`Invoice #${result.id} marked as paid.`)
+                  setConfettiTick(Date.now())
+                  return
+                }
+
+                toast.error('Invoice could not be marked as paid.')
+              } catch {
+                toast.error('Invoice could not be marked as paid.')
               }
             }}
             disabled={invoice.status !== 'pending'}
@@ -166,15 +175,25 @@ export function InvoiceDetailPage() {
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
       >
-        <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+        <Button variant="tertiary" onClick={() => setShowDeleteModal(false)}>
           Cancel
         </Button>
         <Button
           variant="danger"
           onClick={async () => {
-            await deleteInvoice(invoice.id)
-            setShowDeleteModal(false)
-            navigate('/')
+            try {
+              const deleted = await deleteInvoice(invoice.id)
+              if (deleted) {
+                toast.success(`Invoice #${invoice.id} deleted.`)
+                setShowDeleteModal(false)
+                navigate('/')
+                return
+              }
+
+              toast.error('Invoice could not be deleted.')
+            } catch {
+              toast.error('Invoice could not be deleted.')
+            }
           }}
         >
           Delete
@@ -193,7 +212,19 @@ export function InvoiceDetailPage() {
           // Send save is not available in edit mode.
         }}
         onSaveChanges={async (payload) => {
-          await updateInvoice(invoice.id, payload)
+          try {
+            const updated = await updateInvoice(invoice.id, payload)
+            if (updated) {
+              toast.success(`Invoice #${updated.id} updated.`)
+              return
+            }
+          } catch {
+            toast.error('Invoice could not be updated.')
+            throw new Error('Invoice update failed')
+          }
+
+          toast.error('Invoice could not be updated.')
+          throw new Error('Invoice update failed')
         }}
       />
 
