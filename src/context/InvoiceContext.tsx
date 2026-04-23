@@ -7,8 +7,10 @@ import {
   type ReactNode,
 } from 'react'
 import { APP_STORAGE_KEY, buildInvoiceFromPayload, calculateTotal, computeItems, getPaymentDueDate } from '../lib/helpers'
+import { invoiceApi } from '../lib/api'
 import { seedInvoices } from '../lib/seedData'
 import type { Invoice, InvoicePayload, InvoiceStatus } from '../types/invoice'
+import { useAuth } from './AuthContext'
 
 interface InvoiceContextValue {
   invoices: Invoice[]
@@ -39,29 +41,77 @@ function readStoredInvoices() {
 }
 
 export function InvoiceProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatuses, setFilterStatuses] = useState<InvoiceStatus[]>([])
+  const [usingApi, setUsingApi] = useState(false)
 
   useEffect(() => {
-    const data = readStoredInvoices()
-    setInvoices(data)
-    setLoading(false)
-  }, [])
+    if (authLoading) return
+
+    let cancelled = false
+
+    async function bootstrap() {
+      if (!user) {
+        if (!cancelled) {
+          setInvoices(readStoredInvoices())
+          setUsingApi(false)
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        const response = await invoiceApi.list()
+        if (!cancelled) {
+          setInvoices(response.invoices)
+          setUsingApi(true)
+        }
+      } catch {
+        if (!cancelled) {
+          setInvoices(readStoredInvoices())
+          setUsingApi(false)
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    bootstrap()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user, authLoading])
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !usingApi) {
       localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(invoices))
     }
-  }, [invoices, loading])
+  }, [invoices, loading, usingApi])
 
   const createInvoice = async (payload: InvoicePayload, asDraft = false) => {
+    if (usingApi) {
+      const response = await invoiceApi.create(payload, asDraft)
+      setInvoices((prev) => [response.invoice, ...prev])
+      return response.invoice
+    }
+
     const created = buildInvoiceFromPayload(payload, asDraft ? 'draft' : 'pending')
     setInvoices((prev) => [created, ...prev])
     return created
   }
 
   const updateInvoice = async (id: string, payload: InvoicePayload) => {
+    if (usingApi) {
+      const response = await invoiceApi.update(id, payload)
+      setInvoices((prev) => prev.map((invoice) => (invoice.id === id ? response.invoice : invoice)))
+      return response.invoice
+    }
+
     let updatedInvoice: Invoice | null = null
 
     setInvoices((prev) =>
@@ -93,6 +143,14 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
   }
 
   const deleteInvoice = async (id: string) => {
+    if (usingApi) {
+      const response = await invoiceApi.remove(id)
+      if (response.success) {
+        setInvoices((prev) => prev.filter((invoice) => invoice.id !== id))
+      }
+      return response.success
+    }
+
     let didDelete = false
     setInvoices((prev) => {
       const next = prev.filter((invoice) => invoice.id !== id)
@@ -104,6 +162,12 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
   }
 
   const markAsPaid = async (id: string) => {
+    if (usingApi) {
+      const response = await invoiceApi.markPaid(id)
+      setInvoices((prev) => prev.map((invoice) => (invoice.id === id ? response.invoice : invoice)))
+      return response.invoice
+    }
+
     let paidInvoice: Invoice | null = null
 
     setInvoices((prev) =>
