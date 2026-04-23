@@ -44,7 +44,7 @@ export function InvoiceDetailPage() {
   return (
     <section>
       <button
-        className="inline-flex items-center gap-3 text-[15px] font-bold text-(--color-text-heading)"
+        className="inline-flex items-center gap-3 text-[15px] font-bold text-(--color-text-heading) cursor-pointer transition hover:text-(--color-primary)"
         onClick={() => navigate(-1)}
       >
         <Icon name="chevronLeft" className="h-3 w-3 text-(--color-primary)" />

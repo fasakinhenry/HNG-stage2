@@ -21,8 +21,8 @@
   --color-text-subtle: #888eb0;
   --color-table: #f9fafe;
   --color-table-total: #373b53;
-  --color-btn-secondary: #f9fafe;
-  --color-btn-secondary-text: #7e88c3;
+  --color-btn-secondary: #373b53;
+  --color-btn-secondary-text: #979797;
   --color-btn-secondary-hover: #dfe3fa;
   --color-btn-tertiary: #f9fafe;
   --color-btn-tertiary-text: #7e88c3;
@@ -32,6 +32,7 @@
   --color-status-draft: #373b53;
   --color-status-draft-bg: #dfe3fa;
   --color-bg-muted: #f8f8fb;
+  --shadow-default: 0px 10px 20px rgba(72, 78, 110, 0.25);
 
   font-family: 'League Spartan', sans-serif;
   color: var(--color-text-heading);
@@ -48,7 +49,7 @@
   --color-border: #252945;
   --color-border-strong: #494e6e;
   --color-text-heading: #ffffff;
-  --color-text-muted: #7E88C3;
+  --color-text-muted: #7e88c3;
   --color-text-subtle: #888eb0;
   --color-table: #252945;
   --color-table-total: #0c0e16;
@@ -132,6 +133,17 @@ body {
 ::-webkit-scrollbar-thumb {
   background: #dfe3fa;
   border-radius: 4px;
+}
+
+.hide-number-spinner::-webkit-outer-spin-button,
+.hide-number-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.hide-number-spinner[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 @keyframes confetti {

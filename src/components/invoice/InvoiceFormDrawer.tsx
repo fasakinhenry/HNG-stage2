@@ -146,6 +146,25 @@ export function InvoiceFormDrawer({
     })
   }
 
+  const handleNumericKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+    field: 'quantity' | 'price',
+    currentValue: number,
+  ) => {
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      const step = field === 'price' ? 1 : 1
+      updateItem(index, field, Number((currentValue + step).toFixed(2)))
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      const step = field === 'price' ? 1 : 1
+      const min = field === 'quantity' ? 1 : 0
+      const next = Number((currentValue - step).toFixed(2))
+      if (next >= min) updateItem(index, field, next)
+    }
+  }
+
   const addItem = () => {
     updateField('items', [
       ...form.items,
@@ -195,10 +214,14 @@ export function InvoiceFormDrawer({
   return (
     <div className="fixed inset-0 z-20 bg-[rgba(0,0,0,0.5)]" role="presentation" onMouseDown={onClose}>
       <section
-        className="h-full w-full max-w-150 overflow-y-scroll rounded-r-4xl bg-(--color-page) pb-26 shadow-[0_18px_50px_rgba(0,0,0,0.25)] md:pl-24"
+        className="h-full w-full max-w-150 rounded-r-4xl bg-(--color-page) shadow-[0_18px_50px_rgba(0,0,0,0.25)] md:pl-24 flex flex-col overflow-hidden"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <form className="px-6 pt-8 sm:px-10 overflow-y-auto" onSubmit={(event) => event.preventDefault()}>
+        {/* The form is the scrollable element — pr-4 keeps whitespace beside the scrollbar */}
+        <form
+          className="flex-1 overflow-y-auto px-6 pt-8 pb-26 sm:px-10 pr-4 sm:pr-6 min-h-0"
+          onSubmit={(event) => event.preventDefault()}
+        >
           <h2 className="text-h2 text-(--color-text-heading)">
             {mode === 'create' ? 'New Invoice' : `Edit #${invoice?.id ?? ''}`}
           </h2>
@@ -285,7 +308,7 @@ export function InvoiceFormDrawer({
                 error={errors.clientCountry}
               />
             </FieldRow>
-            <FieldRow className="sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <DateField
                 label="Invoice Date"
                 name="createdAt"
@@ -300,7 +323,7 @@ export function InvoiceFormDrawer({
                 onChange={(event) => updateField('paymentTerms', Number(event.target.value))}
                 options={paymentTermOptions}
               />
-            </FieldRow>
+            </div>
             <TextField
               label="Project Description"
               name="description"
@@ -312,63 +335,88 @@ export function InvoiceFormDrawer({
           </section>
 
           <section className="mt-10 space-y-5">
-            <h3 className="text-h2 text-(--color-text-subtle)">Item List</h3>
+            <h3 className="text-[18px] font-bold text-(--color-text-subtle)">Item List</h3>
             <div className="space-y-4">
               {itemRows.map((item, index) => (
-                <div key={item.id} className="rounded-lg border border-(--color-border) p-4">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_0.6fr_1fr_1fr_auto] sm:items-end">
-                    <TextField
-                      label="Item Name"
+                /* No border, no horizontal padding — row spans full form width */
+                <div key={item.id} className="flex items-end gap-3 w-full">
+                  {/* Item Name — grows to fill available space */}
+                  <div className="flex-1 min-w-0">
+                    <label className="mb-2 block text-[13px] text-(--color-text-muted)">Item Name</label>
+                    <input
                       name={`itemName-${item.id}`}
                       value={item.name}
                       onChange={(event) => updateItem(index, 'name', event.target.value)}
-                      error={errors[`itemName-${index}`]}
+                      className="h-12 w-full rounded-md border border-(--color-border) bg-(--color-page) px-4 py-3 text-[15px] font-bold text-(--color-text-heading) focus:border-(--color-primary) focus:outline-none"
                     />
-                    <TextField
-                      label="Qty"
+                    {errors[`itemName-${index}`] && (
+                      <p className="mt-1 text-[11px] font-semibold text-(--color-danger)">{errors[`itemName-${index}`]}</p>
+                    )}
+                  </div>
+
+                  {/* Qty — fixed narrow width, spinners hidden */}
+                  <div className="w-16 shrink-0">
+                    <label className="mb-2 block text-[13px] text-(--color-text-muted)">Qty</label>
+                    <input
                       name={`itemQty-${item.id}`}
                       type="number"
                       min={1}
                       value={item.quantity}
                       onChange={(event) => updateItem(index, 'quantity', Number(event.target.value))}
-                      error={errors[`itemQty-${index}`]}
+                      onKeyDown={(event) => handleNumericKeyDown(event, index, 'quantity', item.quantity)}
+                      className="h-12 w-full rounded-md border border-(--color-border) bg-(--color-page) px-3 py-3 text-[15px] font-bold text-(--color-text-heading) focus:border-(--color-primary) focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
-                    <TextField
-                      label="Price"
+                    {errors[`itemQty-${index}`] && (
+                      <p className="mt-1 text-[11px] font-semibold text-(--color-danger)">{errors[`itemQty-${index}`]}</p>
+                    )}
+                  </div>
+
+                  {/* Price — fixed width, spinners hidden */}
+                  <div className="w-24 shrink-0">
+                    <label className="mb-2 block text-[13px] text-(--color-text-muted)">Price</label>
+                    <input
                       name={`itemPrice-${item.id}`}
                       type="number"
                       step="0.01"
                       min={0}
                       value={item.price}
                       onChange={(event) => updateItem(index, 'price', Number(event.target.value))}
-                      error={errors[`itemPrice-${index}`]}
+                      onKeyDown={(event) => handleNumericKeyDown(event, index, 'price', item.price)}
+                      className="h-12 w-full rounded-md border border-(--color-border) bg-(--color-page) px-3 py-3 text-[15px] font-bold text-(--color-text-heading) focus:border-(--color-primary) focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
-                    <div>
-                      <p className="mb-2 text-[13px] text-(--color-text-muted)">Total</p>
-                      <p className="h-12 rounded-md border border-(--color-border) bg-(--color-bg-muted) px-4 py-3 text-[15px] font-bold text-(--color-text-muted)">
-                        {item.total.toFixed(2)}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.id)}
-                      className="h-12 w-12 rounded-md text-(--color-text-subtle) cursor-pointer transition hover:text-(--color-danger)"
-                      aria-label="Delete item"
-                    >
-                      <Icon name="delete" />
-                    </button>
+                    {errors[`itemPrice-${index}`] && (
+                      <p className="mt-1 text-[11px] font-semibold text-(--color-danger)">{errors[`itemPrice-${index}`]}</p>
+                    )}
                   </div>
+
+                  {/* Total — read-only display */}
+                  <div className="w-20 shrink-0">
+                    <p className="mb-2 text-[13px] text-(--color-text-muted)">Total</p>
+                    <p className="h-12 rounded-md bg-(--color-bg-muted) px-3 py-3 text-[15px] font-bold text-(--color-text-muted) flex items-center">
+                      {item.total.toFixed(2)}
+                    </p>
+                  </div>
+
+                  {/* Delete button */}
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    className="h-12 w-10 shrink-0 rounded-md text-(--color-text-subtle) cursor-pointer transition hover:text-(--color-danger) flex items-center justify-center"
+                    aria-label="Delete item"
+                  >
+                    <Icon name="delete" />
+                  </button>
                 </div>
               ))}
             </div>
             {errors.items ? <p className="text-[11px] font-semibold text-(--color-danger)">{errors.items}</p> : null}
-            <Button type="button" variant="tertiary" icon="plus" className="w-full" onClick={addItem}>
-              Add New Item
+            <Button type="button" variant="tertiary" className="w-full flex items-center justify-center" onClick={addItem}>
+              <span className='font-bold text-xl pr-1 '>+</span> Add New Item
             </Button>
           </section>
         </form>
 
-        <footer className="fixed bottom-0 left-0 right-0 flex h-23 items-center justify-between border-t border-(--color-border) bg-(--color-panel) px-6 sm:px-10 md:max-w-150 md:rounded-r-3xl">
+        <footer className="fixed bottom-0 left-0 right-0 flex h-23 items-center justify-between border-t border-(--color-border) bg-(--color-panel) px-6 sm:px-10 md:pl-34 md:pr-6 md:max-w-150 md:rounded-r-3xl">
           {mode === 'create' ? (
             <>
               <Button type="button" variant="ghost" onClick={onClose}>
