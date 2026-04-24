@@ -339,7 +339,7 @@ export function InvoiceFormDrawer({
             <div className="space-y-4">
               {itemRows.map((item, index) => (
                 /* No border, no horizontal padding — row spans full form width */
-                <div key={item.id} className="flex items-end gap-3 w-full">
+                <div key={item.id} className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
                   {/* Item Name — grows to fill available space */}
                   <div className="flex-1 min-w-0">
                     <label className="mb-2 block text-[13px] text-(--color-text-muted)">Item Name</label>
@@ -355,7 +355,7 @@ export function InvoiceFormDrawer({
                   </div>
 
                   {/* Qty — fixed narrow width, spinners hidden */}
-                  <div className="w-16 shrink-0">
+                  <div className="w-full sm:w-16 sm:shrink-0">
                     <label className="mb-2 block text-[13px] text-(--color-text-muted)">Qty</label>
                     <input
                       name={`itemQty-${item.id}`}
@@ -372,7 +372,7 @@ export function InvoiceFormDrawer({
                   </div>
 
                   {/* Price — fixed width, spinners hidden */}
-                  <div className="w-24 shrink-0">
+                  <div className="w-full sm:w-24 sm:shrink-0">
                     <label className="mb-2 block text-[13px] text-(--color-text-muted)">Price</label>
                     <input
                       name={`itemPrice-${item.id}`}
@@ -390,7 +390,7 @@ export function InvoiceFormDrawer({
                   </div>
 
                   {/* Total — read-only display */}
-                  <div className="w-20 shrink-0">
+                  <div className="w-full sm:w-20 sm:shrink-0">
                     <p className="mb-2 text-[13px] text-(--color-text-muted)">Total</p>
                     <p className="h-12 rounded-md bg-(--color-bg-muted) px-3 py-3 text-[15px] font-bold text-(--color-text-muted) flex items-center">
                       {item.total.toFixed(2)}
@@ -401,7 +401,7 @@ export function InvoiceFormDrawer({
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
-                    className="h-12 w-10 shrink-0 rounded-md text-(--color-text-subtle) cursor-pointer transition hover:text-(--color-danger) flex items-center justify-center"
+                    className="flex h-12 w-full items-center justify-center rounded-md text-(--color-text-subtle) transition hover:text-(--color-danger) sm:w-10 sm:shrink-0"
                     aria-label="Delete item"
                   >
                     <Icon name="delete" />
